@@ -62,6 +62,24 @@ OPERATIONS
       tape := tape <- ss
     END ;
 
+  step =
+    PRE status = running &
+        rec(State: state, Tape: tape, Pos: pos):dom(trans)
+    THEN
+      LET next
+      BE
+        next = trans(rec(State: state, Tape: tape, Pos: pos))
+      IN
+        state := next'State ||
+        tape := next'Tape ||
+        pos := next'Pos ||
+        IF next'State = halt
+        THEN
+             status := halted
+        END
+      END
+    END ;
+
   run =
     PRE state = init &
         status = running &
