@@ -85,19 +85,21 @@ OPERATIONS
         status = running &
         rec(State: state, Tape: tape, Pos: pos):dom(trans)
     THEN
-      LET final
-      BE
-        final = closure(trans)(rec(State: state, Tape: tape, Pos: pos))
-      IN
-        state := final'State ||
-        tape := final'Tape ||
-        pos := final'Pos ||
-        IF final'State = halt
-        THEN
-             status := halted
-        ELSE
-             status := error
-        END
+      /* Closures will also include partial executions, so it is no
+         longer a function. Therefore we have to find one execution
+         that ends in the halting state. */
+      ANY exec_tree, halt_tape, halt_pos
+      WHERE
+        exec_tree = {rec(State: init, Tape: tape, Pos: pos)} <|
+                    closure(trans) &
+        halt_tape:seq1(ALPHA) &
+        halt_pos:NAT &
+        rec(State: halt, Tape: halt_tape, Pos: halt_pos) : ran(exec_tree)
+      THEN
+        state := halt ||
+        tape := halt_tape ||
+        pos := halt_pos ||
+        status := halted
       END
     END
 END
