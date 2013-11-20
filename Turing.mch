@@ -55,6 +55,13 @@ OPERATIONS
                           rec(State: s2, Tape: t2, Pos: p2) }
     END ;
 
+  push_input(ss) =
+    PRE ss:ALPHA &
+        ss /= start
+    THEN
+      tape := tape <- ss
+    END ;
+
   run =
     PRE state = init &
         status = running &
