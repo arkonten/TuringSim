@@ -49,7 +49,8 @@ OPERATIONS
         rec(State: s1, Tape: t1, Pos: p1) /: dom(trans) &
         ((first(t1) = start) <=> (first(t2) = start)) &
         (!cell.(cell:ran(tail(t1)) => cell /= start)) &
-        (!cell.(cell:ran(tail(t2)) => cell /= start))
+        (!cell.(cell:ran(tail(t2)) => cell /= start)) &
+        (p1 = p2 or p1 + 1 = p2 or p1 - 1 = p2)
     THEN
       trans := trans <+ { rec(State: s1, Tape: t1, Pos: p1) |->
                           rec(State: s2, Tape: t2, Pos: p2) }
