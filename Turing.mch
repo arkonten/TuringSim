@@ -34,6 +34,7 @@ INVARIANT state:STATE &
           first(tape) = start &
           (!cell.(cell:ran(tail(tape)) => cell /= start)) &
           pos:NAT &
+          pos <= size(tape) &
           trans : struct(State: STATE, Tape: seq1(ALPHA), Pos: NAT) +->
                   struct(State: STATE, Tape: seq1(ALPHA), Pos: NAT) &
           !(ss,tt,pp).((ss:STATE &
@@ -70,11 +71,13 @@ OPERATIONS
         s2:STATE &
         t2:seq1(ALPHA) &
         p2:NAT &
+        p2 <= size(t2) &
         s1 /= halt &
         rec(State: s1, Tape: t1, Pos: p1) /: dom(trans) &
         ((first(t1) = start) <=> (first(t2) = start)) &
         (!cell.(cell:ran(tail(t1)) => cell /= start)) &
-        (!cell.(cell:ran(tail(t2)) => cell /= start))
+        (!cell.(cell:ran(tail(t2)) => cell /= start)) &
+        (p1 = p2 or p1 + 1 = p2 or p1 - 1 = p2)
     THEN
       trans := trans <+ { rec(State: s1, Tape: t1, Pos: p1) |->
                           rec(State: s2, Tape: t2, Pos: p2) }
@@ -111,18 +114,30 @@ OPERATIONS
         status = running &
         rec(State: state, Tape: tape, Pos: pos):dom(trans)
     THEN
-      LET final
+      LET exec_tree
       BE
-        final = closure(trans)(rec(State: state, Tape: tape, Pos: pos))
+        exec_tree = {rec(State: init, Tape: tape, Pos: pos)} <|
+                    closure(trans)
       IN
-        state := final'State ||
-        tape := final'Tape ||
-        pos := final'Pos ||
-        IF final'State = halt
+        /* Closures will also include partial executions, so it is no
+           longer a function. Therefore we have to find one execution
+           that ends in the halting state. */
+        IF #(tt, pp).(tt:seq1(ALPHA) & pp:NAT &
+             rec(State: halt, Tape: tt, Pos: pp) : ran(exec_tree))
         THEN
-             status := halted
+          ANY tt, pp
+          WHERE
+            tt:seq1(ALPHA) &
+            pp:NAT &
+            rec(State: halt, Tape: tt, Pos: pp) : ran(exec_tree)
+          THEN
+            state := halt ||
+            tape := tt ||
+            pos := pp ||
+            status := halted
+          END
         ELSE
-             status := error
+          status := error
         END
       END
     END
