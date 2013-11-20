@@ -1,15 +1,26 @@
 MACHINE Turing(ALPHA,
                blank,
                start,
+               zero,
+               one,
                STATE,
                init,
                halt)
 CONSTRAINTS card(ALPHA) > 2 &
             blank:ALPHA &
             start:ALPHA &
+            zero:ALPHA &
+            one:ALPHA &
+            zero /= one &
+            zero /= start &
+            zero /= blank &
+            one /= zero &
+            one /= start &
+            one /= blank &
             blank /= start &
             init:STATE &
-            halt:STATE
+            halt:STATE &
+            halt /= init
 SETS STATUS = {halted,
                running,
                error}
@@ -33,11 +44,25 @@ INVARIANT state:STATE &
           status:STATUS
 
 INITIALISATION state := init ||
-               tape := [start] ||
+               tape := [start, zero, one, blank] ||
                pos := 1 ||
-               trans := {} ||
+               trans :=
+{
+  (rec(State: init, Tape: [start, zero, one,  blank], Pos: 1) |->
+   rec(State: init, Tape: [start, zero, one,  blank], Pos: 2)),
+
+  (rec(State: init, Tape: [start, zero, one,  blank], Pos: 2) |->
+   rec(State: init, Tape: [start, one,  one,  blank], Pos: 3)),
+
+  (rec(State: init, Tape: [start, one,  one,  blank], Pos: 3) |->
+   rec(State: init, Tape: [start, one,  zero, blank], Pos: 4)),
+
+  (rec(State: init, Tape: [start, one,  zero, blank], Pos: 4) |->
+   rec(State: halt, Tape: [start, one,  zero, blank], Pos: 4))
+} ||
                status := running
 OPERATIONS
+/*
   add_transition(s1, t1, p1, s2, t2, p2) =
     PRE s1:STATE &
         t1:seq1(ALPHA) &
@@ -54,6 +79,7 @@ OPERATIONS
       trans := trans <+ { rec(State: s1, Tape: t1, Pos: p1) |->
                           rec(State: s2, Tape: t2, Pos: p2) }
     END ;
+*/
 
   push_input(ss) =
     PRE ss:ALPHA &
