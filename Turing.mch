@@ -23,6 +23,7 @@ INVARIANT state:STATE &
           first(tape) = start &
           (!cell.(cell:ran(tail(tape)) => cell /= start)) &
           pos:NAT &
+          pos <= size(tape) &
           trans : struct(State: STATE, Tape: seq1(ALPHA), Pos: NAT) +->
                   struct(State: STATE, Tape: seq1(ALPHA), Pos: NAT) &
           !(ss,tt,pp).((ss:STATE &
@@ -45,6 +46,7 @@ OPERATIONS
         s2:STATE &
         t2:seq1(ALPHA) &
         p2:NAT &
+        p2 <= size(t2) &
         s1 /= halt &
         rec(State: s1, Tape: t1, Pos: p1) /: dom(trans) &
         ((first(t1) = start) <=> (first(t2) = start)) &
